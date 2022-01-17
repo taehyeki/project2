@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block head %}
+    <style>
+        body {
+            background-color: #e0faf5;
+        }
+        #join-container {
+            background-color: white;
+        }
+    </style>
+{% endblock %}
+{% block content%}
+<div id="join-container">
+    <div id="join-wrraper">
+        <div id="title-box"><h1 id="join-title">😻 회원 가입 🐾</h1></div>
+        <div class="mb-3" id="email-box">
+            <label for="email" class="form-label" >이메일</label>
+            <input type="email" class="form-control" id="email" placeholder="이메일을 적어주세요.">
+            <div class="msg-box">
+                <p class="err-box"></p>
+                <p class="success-box"></p>
+            </div>
+        </div>
+        <div class="mb-3" id="email-check-box">
+             <button type="button" class="btn btn-primary" id="id-btn">중복 확인</button>
+        </div>
+        <div class="mb-3" id="name-box">
+            <label for="name" class="form-label">이름</label>
+            <input type="text" class="form-control" id="name" placeholder="이름을 적어주세요.">
+        </div>
+        <div class="mb-3" id ="password1-box">
+            <label for="password1" class="form-label">비밀번호</label>
+            <input type="password" class="form-control" id="password1" placeholder="비밀번호를 입력해주세요.">
+            <div class="msg-box">
+                <p class="err-box"></p>
+                <p class="success-box"></p>
+            </div>
+        </div>
+        <div class="mb-3" id="password2-box">
+            <label for="password2" class="form-label">비밀번호 확인</label>
+            <input type="password" class="form-control"  id="password2"  placeholder="다시한번 확인해주세요.">
+            <div class="msg-box">
+                <p class="err-box"></p>
+                <p class="success-box"></p>
+            </div>
+        </div>
+        <div class="mb-3">
+            <button type="button" class="btn btn-primary" id="join-btn">회원가입</button>
+        </div>
+        <div class="mb-3">
+             <a onclick="login()" >아이디가 있으신가요?</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block script%}
+<script>
+    const idBtn = document.getElementById('id-btn')
+    idBtn.addEventListener('click',(e)=>{
+        const regex = /[a-zA-Z0-9]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-\.]+/
+        const email_val = document.getElementById('email').value
+        const isTrue = regex.test(email_val)
+        const err = document.querySelector('#email-box .err-box')
+        const suc = document.querySelector('#email-box .success-box')
+        if (!isTrue){
+            err.innerHTML ='이메일 형식을 제대로 맞춰주세요'
+            return
+        } else {
+            $.ajax({
+                type: "POST",
+                url: "/join/api/email",
+                data: {"email": email_val},
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.fail) {
+                        err.innerHTML ='중복된 아이디가 존재합니다.'
+                    }
+                    else {
+                        err.hidden = true;
+                        suc.innerHTML = '사용하셔도 좋습니다.';
+                        document.getElementById('email').readOnly = true
+                        document.getElementById('id-btn').hidden = true
+                    }
+                }
+            })
+
+        }
+
+
+    })
+    const joinBtn = document.getElementById('join-btn')
+    joinBtn.addEventListener('click',(e)=>{
+
+        const regex = /^(?=.*[a-zA-z])(?=.*[0-9])(?=.*[$`~!@$!%*#^?&\\(\\)\-_=+])(?!.*[^a-zA-z0-9$`~!@$!%*#^?&\\(\\)\-_=+]).{8,16}$/
+        const email_val = document.getElementById('email').value
+        const pass_val = document.getElementById('password1').value
+        const name_val = document.getElementById('name').value
+        const isTrue = regex.test(pass_val)
+        const pass_val2 = document.getElementById('password2').value
+        const err = document.querySelector('#password1-box .err-box')
+        const err2 = document.querySelector('#password2-box .err-box')
+
+         if (!isTrue){
+             err.innerHTML ='숫자, 영문, 특수문자 각 1자리 이상 사용해주세요'
+             pass_val.innerHTML = ''
+             err2.innerHTML = ''
+             return
+         }
+         if (pass_val != pass_val2){
+             err2.innerHTML = '동일한 비밀번호를 설정해주세요.'
+             err.innerHTML = ''
+             pass_val2.innerHTML = ''
+             return
+         }
+        err.innerHTML = ''
+        err2.innerHTML = ''
+        $.ajax({
+                type: "POST",
+                url: "/join/api",
+                data: {"email": email_val, 'name':name_val, 'pw':pass_val},
+                dataType: "JSON",
+                success: function (res) {
+                    window.location.href = '/'
+                }
+            })
+
+
+
+
+    })
+    function login(){
+        window.location.href = '/login'
+    }
+
+</script>
+{% endblock %}

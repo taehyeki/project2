@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block head %}
+    <style>
+        body {
+            width: 100%;
+            background:#fff8a5 ;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="cat-container">
+        <div class="can"></div>
+        <div id="cat-title-box">
+            <img id="cat1" src="../static/imgs/cat11111.png">
+            <img id="cat2" src="../static/imgs/cat11444.png ">
+            <img id="cat3" src="../static/imgs/cattttt.png ">
+            <img id="cat4" src="../static/imgs/3333.png">
+            <div id="dog-title">
+                <h1>당신은 <strong>고양이상</strong>입니다</h1>
+            </div>
+        </div>
+        <div class="can"></div>
+        <div id="cat-sel-box">
+            <div id="cat-sel-title">
+                <h1>고양이상 연예인</h1>
+            </div>
+            <div id="sel-btn">
+                <div id="btn1" class="active btn" >강동원</div>
+                <div id="btn2" class="btn">탑</div>
+                <div id="btn3" class="btn">나나</div>
+            </div>
+            <div id="sel-img-box">
+                <img class="sel"  src="../static/imgs/g.png">
+                <img class="sel" style="opacity: 0" src="../static/imgs/top.png">
+                <img class="sel" style="opacity: 0" src="../static/imgs/nana.png">
+            </div>
+        </div>
+        <div class="can"></div>
+        <div id="cat-room">
+            <div id="cat-room-title">
+                <h1>방명록</h1>
+            </div>
+            <div id="cat-room-comment">
+                {% if comments|length > 0 %}
+                    <div id="show-comment">
+                        {%  for i in comments %}
+                            <div class="comment">
+                                <p><span class="badge bg-light text-dark">{{ i['face'] }}</span> {{ i['author_name'] }} : {{ i['content'] }}</p>
+                                <small>{{ i['created_time'] }}</small>
+                            </div>
+
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if comments|length < 1 %}
+                    <div id="not-box">
+                        <p>😸 첫 방명록을 달아보세요 😺 </p>
+                    </div>
+                {% endif %}
+                <div id="write-comment">
+                    <input type="text" id="comment" placeholder=" 방명록을 적어보세요 ~!" maxlength="20">
+                    <span id="comment-btn" >🐈</span>
+                </div>
+            </div>
+        </div>
+        <div class="can"></div>
+        <div id="cat-mbti-box">
+            <h1>나는 무슨 고양이일까 !?</h1>
+            <iframe src="https://cats-mbti.netlify.app/" width="100%" height="400px" style="overflow-y: scroll">
+            </iframe>
+        </div>
+        <div class="can"></div>
+
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        const btns = document.querySelectorAll('.btn')
+        for(i=0;i<btns.length;i++){
+            btns[i].addEventListener('click',chan)
+        }
+
+        function chan(e){
+            childrens = e.target.parentElement.children
+            for (i=0;i<childrens.length;i++){
+                childrens[i].classList.remove('active')
+            }
+            e.target.classList.toggle('active')
+            var index = $(this).attr('id').substr(-1);
+            a = $('.sel').eq(parseInt(index)-1)
+            for (i=0;i<$('.sel').length; i++){
+                $('.sel').eq(i).css({opacity: 0})
+            }
+            a.css({opacity : 1})
+        }
+        const comBtn = document.getElementById('comment-btn')
+        const com = document.getElementById('comment')
+        comBtn.addEventListener('click',()=>{
+            $.ajax({
+            type: "POST",
+            url: "/cat/comment",
+            data: {"comment": com.value },
+            dataType: "JSON",
+            success: function (res) {
+                    window.location.href = '/cat'
+            }
+        })
+        })
+    </script>
+{% endblock %}

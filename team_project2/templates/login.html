@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block head %}
+    <style>
+        body {
+            background-color: floralwhite;
+        }
+    </style>
+{% endblock %}
+{% block content%}
+<div id="login-container">
+    <div id="login-wrraper">
+        <div id="login-title">
+            <h1>🐈 로그인 🐕</h1>
+        </div>
+        <div id="login-email">
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="id_email" placeholder="name@example.com">
+                <label for="id_email">이메일</label>
+                <p class="err-box"></p>
+            </div>
+        </div>
+        <div id="login-password">
+            <div class="form-floating">
+                <input type="password" class="form-control" id="id_password" placeholder="Password">
+                <label for="id_password">비밀번호</label>
+                <p class="err-box"></p>
+            </div>
+        </div>
+        <div id="login-btn-box">
+            <button type="button" class="btn btn-light" id="login-btn">로그인</button>
+        </div>
+
+    </div>
+    <div id="social-login">
+        <button class="button is-small" onclick="loginWithGithub()"id="github-btn">
+            <span class="icon">
+              <i class="fab fa-github"></i>
+            </span>
+            <span>깃허브로 로그인하기</span>
+        </button>
+        <button class="button is-small" onclick="loginWithKakao()" id="kakao-btn">
+            <span class="icon">
+              <i class="fas fa-comment"></i>
+            </span>
+            <span>카카오톡으로 로그인하기</span>
+        </button>
+        <br>
+        <br>
+        <a onclick="join()" >아이디가 없으신가요?</a>
+    </div>
+
+</div>
+
+{% endblock %}
+{% block script %}
+<script>
+    const loginBtn = document.getElementById('login-btn')
+    loginBtn.addEventListener('click',(e)=>{
+        const email_val = document.getElementById('id_email').value
+        const pass_val = document.getElementById('id_password').value
+        const err = document.querySelector('#login-email .err-box')
+        const err2 = document.querySelector('#login-password .err-box')
+        $.ajax({
+            type: "POST",
+            url: "/login/api",
+            data: {"email": email_val, 'pw':pass_val},
+            dataType: "JSON",
+            success: function (res) {
+                console.log(res)
+                if (res.not){
+                    err.innerHTML = '아이디가 존재하지 않습니다.';
+                    err2.innerHTML = '';
+                }
+                else if (res.fail){
+                    err.innerHTML = ''
+                    err2.innerHTML = '비밀번호가 일치하지 않습니다.'
+                }
+                else if (res.result){
+                    $.cookie('token', res.token);
+                    window.location.href = '/'
+                }
+            }
+        })
+    })
+
+
+    function join(){
+        window.location.href = '/join'
+    }
+    function loginWithKakao(){
+        const baseUrl = 'https://kauth.kakao.com/oauth/authorize'
+        config = {
+            client_id : '7f535c9ad05fa8ee370a9eb9318421c7',
+            redirect_uri : 'http://localhost:5000/login/kakao',
+            response_type : 'code'
+        }
+        const params= new URLSearchParams(config).toString()
+        window.location.href = `${baseUrl}?${params}`
+    }
+
+    function loginWithGithub(){
+        const baseUrl = 'https://github.com/login/oauth/authorize'
+        config = {
+            client_id : '94debc0ee29ed22a1f74',
+            scope: 'read:user user:email'
+        }
+        const params= new URLSearchParams(config).toString()
+        window.location.href = `${baseUrl}?${params}`
+    }
+</script>
+{% endblock %}

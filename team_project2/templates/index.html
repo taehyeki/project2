@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block head %}
+    <style>
+        body {
+            background-color: #fae1ef
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="main-container">
+        <div id="cmr-box">
+            <h5>📷 카메라 전환</h5>
+        </div>
+
+        <div id="main-wrapper">
+            <div id="left">
+
+            </div>
+            <div id="hidden-box">
+                <video id="video" autoplay style="width: 30vw; height: 30vw" hidden ></video>
+            </div>
+            <canvas id="canvas" style="display: none"></canvas>
+            <div id="drop-box">
+                <div id="hidden-imgbox"></div>
+                <input type="file" id="file">
+                <h1>😺 사진 업로드 🐶</h1>
+            </div>
+            <div id="right">
+
+            </div>
+        </div>
+        <div class="file-upload">
+            <button onclick="posting()">
+                <span style="color: #faf66c " >
+                    <i class="fas fa-cat" ></i>
+                </span>
+                나는 무슨 상일까?
+                <span style="color: rosybrown;" >
+                    <i class="fas fa-dog"></i>
+                </span>
+            </button>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block script %}
+    <script>
+        let flag = 1
+        const drogBox = document.getElementById('drop-box')
+        drogBox.addEventListener('dragover',(e)=>{
+            drogBox.style.filter = 'blur(1px)';
+        })
+        drogBox.addEventListener('dragleave',(e)=>{
+            drogBox.style.filter = 'blur(0px)';
+        })
+        drogBox.addEventListener('drop',(e)=>{
+            drogBox.style.filter = 'blur(0px)';
+            const data = e.dataTransfer.files[0];
+            const imgUrl = URL.createObjectURL(data);
+            const frame = document.getElementById('hidden-imgbox')
+
+            frame.style.backgroundImage = `url(${imgUrl})`;
+            frame.style.display = 'block'
+
+
+        })
+        function dataURItoBlob(dataURI) {
+            // convert base64/URLEncoded data component to raw binary data held in a string
+            var byteString;
+            if (dataURI.split(',')[0].indexOf('base64') >= 0)
+                byteString = atob(dataURI.split(',')[1]);
+            else
+                byteString = unescape(dataURI.split(',')[1]);
+
+            // separate out the mime component
+            var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+            // write the bytes of the string to a typed array
+            var ia = new Uint8Array(byteString.length);
+            for (var i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+
+            return new Blob([ia], {type:mimeString});
+        }
+
+
+        function posting() {
+            if (flag == 1) {
+                let file = $('#file')[0].files[0]
+                const form_data = new FormData()
+                form_data.append("file_give", file)
+                $.ajax({
+                    type: "POST",
+                    url: "/fileupload",
+                    data: form_data,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        window.location.href = '/result'
+                        // 아래처럼 하지 않아도, 백엔드(app.py)에서 바로 판별 함수를 실행한 뒤에
+                        // render_template 을 해서 바로 결과 페이지로 넘어가도 됨
+                    }
+                });
+            }else if (flag == 0){
+                var dataURL = document.getElementById('canvas').toDataURL()
+                var blob = dataURItoBlob(dataURL);
+                var file = new File( [blob], 'canvasImage.jpg', { type: 'image/jpeg' } );
+                var form_data = new FormData();
+                form_data.append("file_give", file);
+                $.ajax({
+                    type: "POST",
+                    url: "/fileupload",
+                    data: form_data,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        window.location.href = '/result'
+                        // 아래처럼 하지 않아도, 백엔드(app.py)에서 바로 판별 함수를 실행한 뒤에
+                        // render_template 을 해서 바로 결과 페이지로 넘어가도 됨
+                    }
+                });
+            }
+        }
+        const file_input = document.getElementById('file')
+        file_input.addEventListener('change',(e)=>{
+
+        })
+        const video = document.getElementById('video')
+        const cmrBtn = document.getElementById('cmr-box')
+        const canvas = document.getElementById('canvas')
+          const context = canvas.getContext('2d')
+        const constraints = {
+            video: true,
+            audio : false
+
+        }
+        function  endCam() {
+            context.drawImage(video,0,0,300,150)
+            canvas.style.display = 'block'
+            video.hidden = true
+            video.srcObject = null;
+            window.stream = null;
+             cmrBtn.removeEventListener('click',endCam)
+            cmrBtn.innerText = '📷 재촬영'
+
+            cmrBtn.addEventListener('click', setCam)
+
+        }
+        async function startCam(){
+            flag = 0
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                console.log(stream)
+                video.srcObject = stream;
+                window.stream = stream;
+
+            } catch (e){
+                console.log(e.toString())
+            }
+        }
+        const setCam = ()=>{
+           canvas.style.display = 'none'
+            document.getElementById('drop-box').hidden = true
+            video.hidden = false
+            startCam()
+            cmrBtn.removeEventListener('click',setCam)
+            cmrBtn.innerText = '🎬 사진 촬영'
+            cmrBtn.addEventListener('click', endCam)
+        }
+
+        cmrBtn.addEventListener('click',setCam)
+    </script>
+{% endblock %}

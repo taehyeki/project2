@@ -1,0 +1,6 @@
+team_project2.cmd
+__pycache__
+team_project2/static/model/model.h5
+team_project2/static/model/model2.h5
+team_project2/static/model/model3.h5
+.idea
